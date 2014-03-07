@@ -15,10 +15,11 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key = True)
-    email = Column(String(64), nullable=True)
-    password = Column(String(64), nullable=True)
     age = Column(Integer, nullable=True)
     zipcode = Column(String(15), nullable=True)
+    gender = Column(String(5), nullable = True)
+    email = Column(String(64), nullable=True)
+    password = Column(String(64), nullable=True)
 
     # data = relationship("Data", order_by = movies_id")
 
@@ -59,16 +60,27 @@ def connect():
     return Session()
 
 
-def main():
+def main(session):
     """In case we need this for something"""
-    pass
+# TODO is it supposed to print out the SQL translation every time?
+# TODO the ".all()" isn't returning a list
+    # al = session.query(Movie).filter_by(title="Aladdin").one()
+    # print al
+    # print al.movie_id
+    # print al.title
+    # print al.released
+    # print al.url
+
+    for row in session.query(Movie).filter_by(title = "Aladdin").all():
+        print row.title, row.url, row.released
 
 if __name__ == "__main__":
-    main()
+    session = connect()
+    main(session)
 
 
 
-# NOTE: This translate the above python metadata code to SQl to create the tables
+# NOTE: This translates the above python metadata code to SQl to create the tables
     # Once create, table = class, the attributes =  columns, row = instance
 # python -i model.py
 # engine = create_engine("sqlite:///ratings.db", echo=True)

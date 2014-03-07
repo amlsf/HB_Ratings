@@ -1,49 +1,18 @@
+# For loading data into the database once it's been set up and tables created from model.py
 import model
 import csv
 import datetime
 import time
-
-
-session = model.connect()
-
-
-
-moviefile = open("seed_data/u.item") 
-
-for movieline in moviefile:  
-    movieinstance = movieline.split("|")
-    # print movieinstance
-    if movieinstance[2] == '':
-        # print movieinstance
-        # releasedate[2] = null
-        movieitem = model.Movie(movie_id = movieinstance[0], 
-                title = movieinstance[1],
-                released = datetime.datetime.strptime("01-Jan-1970", "%d-%b-%Y"),
-                url = "unknown")
-    else:         
-        releasedate = datetime.datetime.strptime(movieinstance[2], "%d-%b-%Y")
-        # print releasedate
-        movietitlelist = movieinstance[1].split(" (")
-        movietitle = movietitlelist[0]
-        movieitem = model.Movie(movie_id = movieinstance[0],
-                title = movietitle, 
-                released = releasedate, 
-                url = movieinstance[4])
-
-    session.add(movieitem)
-
-session.commit()
-userfile.close()
-
 
 def load_users(session):
     userfile = open("seed_data/u.user") 
 
     for userline in userfile:  
         userinstance = userline.split("|")
-        # print userinstance
-        # columnnames = ("id", "email", "password", "age", "zipcode")
-        insertitem = model.User(id = userinstance[0], email = userinstance[1], password = userinstance[2], age = userinstance[3], zipcode = userinstance[4])
+        insertitem = model.User(id = userinstance[0], 
+            age = userinstance[1],
+            zipcode = userinstance[4],
+            gender = userinstance[2])
         session.add(insertitem)
 
     session.commit()
@@ -68,26 +37,36 @@ def load_movies(session):
             # print releasedate
             movietitlelist = movieinstance[1].split(" (")
             movietitle = movietitlelist[0]
+# TODO this latin-1 seems to be limiting the movie title characters
+            title = movietitle.decode("latin-1")
             movieitem = model.Movie(movie_id = movieinstance[0],
-                    title = movietitle, 
+                    title = title, 
                     released = releasedate, 
                     url = movieinstance[4])
 
         session.add(movieitem)
-    
+
     session.commit()
-    userfile.close()
+    moviefile.close()
 
 def load_ratings(session):
-    # use u.data
-    pass
+    ratingfile = open("seed_data/u.data") 
 
+    for ratingline in ratingfile:  
+        ratinginstance = ratingline.split("\t")
+        ratingitem = model.Ratingsdata(movie_id = ratinginstance[1], 
+            user_id = ratinginstance[0], 
+            rating = ratinginstance[2])
+        session.add(ratingitem)
 
+    session.commit()
+    ratingfile.close()
 
 
 def main(session):
-    # You'll call each of the load_* functions with the session as an argument
-    pass
+    load_users(session)
+    load_movies(session)
+    load_ratings(session)
 
 if __name__ == "__main__":
     s = model.connect()
