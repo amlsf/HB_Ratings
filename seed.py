@@ -2,47 +2,54 @@
 import model
 import csv
 import datetime
-import time
+import re
+
 
 def load_users(session):
-    userfile = open("seed_data/u.user") 
-
-    for userline in userfile:  
-        userinstance = userline.split("|")
-        insertitem = model.User(id = userinstance[0], 
-            age = userinstance[1],
-            zipcode = userinstance[4],
-            gender = userinstance[2])
-        session.add(insertitem)
+    with open("seed_data/u.user") as f:
+        reader = csv.reader(f, delimiter = "|")
+        for row in reader:
+# This creates a tuple 
+            id, age, gender, profession, zipcode = row
+            id = int(id)
+            age = int(age)
+            u = model.User(id = id, 
+                age = age,
+                zipcode =zipcode,
+                gender = gender,
+                email = None,
+                password = None)
+            session.add(u)
 
     session.commit()
-    userfile.close()
+    f.close()
 
 def load_movies(session):
 
     moviefile = open("seed_data/u.item") 
 
-    for movieline in moviefile:  
-        movieinstance = movieline.split("|")
-        # print movieinstance
-        if movieinstance[2] == '':
-            # print movieinstance
-            # releasedate[2] = null
-            movieitem = model.Movie(movie_id = movieinstance[0], 
-                    title = movieinstance[1],
+    for row in moviefile:  
+        row = row.split("|")
+        print row
+        movie_id, title, released, other, url = row[:5]
+        movie_id = int(movie_id)
+        if released == '':
+            movieitem = model.Movie(movie_id = movie_id, 
+                    title = title,
                     released = datetime.datetime.strptime("01-Jan-1970", "%d-%b-%Y"),
                     url = "unknown")
         else:         
-            releasedate = datetime.datetime.strptime(movieinstance[2], "%d-%b-%Y")
-            # print releasedate
-            movietitlelist = movieinstance[1].split(" (")
-            movietitle = movietitlelist[0]
+            releasedate = datetime.datetime.strptime(released, "%d-%b-%Y")
+            title = re.sub("\s\(\d{4}\)", "", title)
+
+            # title = title.split(" (")
+            # title = title[0]
 # TODO this latin-1 seems to be limiting the movie title characters
-            title = movietitle.decode("latin-1")
-            movieitem = model.Movie(movie_id = movieinstance[0],
+            title = title.decode("latin-1")
+            movieitem = model.Movie(movie_id = movie_id,
                     title = title, 
                     released = releasedate, 
-                    url = movieinstance[4])
+                    url = url)
 
         session.add(movieitem)
 
@@ -53,10 +60,14 @@ def load_ratings(session):
     ratingfile = open("seed_data/u.data") 
 
     for ratingline in ratingfile:  
-        ratinginstance = ratingline.split("\t")
-        ratingitem = model.Ratingsdata(movie_id = ratinginstance[1], 
-            user_id = ratinginstance[0], 
-            rating = ratinginstance[2])
+        ratingline = ratingline.split("\t")
+        user_id, item_id, rating, timestamp = ratingline
+        rating = int(rating)
+        user_id = int(user_id)
+        item_id = int(item_id)
+        ratingitem = model.Ratingsdata(movie_id = item_id, 
+            user_id = user_id, 
+            rating = rating)
         session.add(ratingitem)
 
     session.commit()
