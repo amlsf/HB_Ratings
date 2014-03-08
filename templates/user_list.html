@@ -1,5 +1,12 @@
+{% extends 'master.html' %}
+{% block body %}
+
 <html>
-{% for user in users %}
-<h2>User {{ user.id }}, age {{ user.age }} has {{ user.ratings|length }} ratings</h2>
+
+{% for user in users_list %}
+<h3> <small><a href="{{ url_for('user_ratings', user_id=user.id) }}">User {{ user.id }}, age {{ user.age }}, zipcode {{user.zipcode}} has {{ user.ratings|length }} ratings</a></small> </h3>
 {% endfor %}
+
 </html>
+
+{% endblock %}

@@ -1,3 +1,6 @@
+# TODO(optional) use Javascript and AJAX????
+#TODO(optional) add bunch of links to navigate better
+
 from flask import Flask, render_template, redirect, request, session, url_for, flash
 import model
 import datetime
@@ -16,7 +19,7 @@ def index():
 # Checks if user successfully logged in (to session), then gives update
     if session.get('user_id'):
         flash("Userid: %s, useremail: %s is logged in!"%(session['user_id'], session['useremail']))
-        return render_template("index.html")        
+        return redirect(url_for("view_users"))
     else:
         return render_template("index.html")
 
@@ -69,16 +72,15 @@ def create_account():
 
     user = model.session.query(model.User).filter_by(email=useremail).all()
 
+# TODO(optional)-add regex confirmation of email, validation all fields filled in & appropriately
 # Verification if user already exists 
     if user != []: 
         flash("This username already exists, Please select another one!")
-# TODO (optional) - how to avoid deleting everything when redirect back to register page? 
         return redirect(url_for("register"))
 # Verification that passwords match 
-
-# TODO (optional) (if unsernae not exist take to register page)
     elif password != password_ver:
-        flash("Your passwords do not match")
+        flash("Your passwords do not match.")
+        print  password, password_ver
         return redirect(url_for("register"))
     else:
         newperson = model.User(email=useremail, 
@@ -86,10 +88,49 @@ def create_account():
                             age=age, 
                             zipcode=zipcode,
                             gender=gender)
-        session.add(newperson)
-        session.commit()
+        model.session.add(newperson)
+        model.session.commit()
         flash("New user was created")            
         return redirect(url_for("index"))
+
+@app.route("/users")
+def view_users():
+    if session.get('user_id'):
+        users_list = model.session.query(model.User).all()
+        return render_template("user_list.html", users_list=users_list)
+    else:
+        flash("Please login")
+        return redirect(url_for("index"))
+
+#TODO(optional) add in movie names, add hyperlinks to movies, create a handler to view all movies
+@app.route("/users/<user_id>")
+def user_ratings(user_id):
+    if session.get('user_id'):
+        user_ratings = model.session.query(model.Ratingsdata).filter_by(user_id=user_id).all()
+        return render_template("user_ratings.html", user_ratings=user_ratings)
+    else:
+        flash("Please login")
+        return redirect(url_for("index"))
+
+@app.route("/movies")
+def view_movies():
+    if session.get('user_id'):
+        movie_list = model.session.query(model.Movie).all()
+        return render_template("movie_list.html", movie_list=movie_list)
+    else:
+        flash("Please login")
+        return redirect(url_for("index"))
+
+@app.route("/movies/<movie_id>")
+def movie_ratings(movie_id):
+    if session.get('user_id'):
+        movie_ratings = model.session.query(model.Ratingsdata).filter_by(movie_id=movie_id).all()
+        return render_template("movie_ratings.html", movie_ratings=movie_ratings)
+    else:
+        flash("Please login")
+        return redirect(url_for("index"))
+
+
 
 if __name__ == "__main__":
     app.run(debug = True)

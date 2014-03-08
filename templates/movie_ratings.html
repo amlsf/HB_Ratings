@@ -1,0 +1,12 @@
+{% extends 'master.html' %}
+{% block body %}
+
+<html>
+
+{% for rating in movie_ratings %}
+<h3> <small>User ID {{ rating.user_id }} gave Movie ID {{ rating.movie_id }} a rating of {{rating.rating}} </small> </h3>
+{% endfor %}
+
+</html>
+
+{% endblock %}

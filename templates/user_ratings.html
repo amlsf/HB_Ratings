@@ -1,0 +1,19 @@
+{% extends 'master.html' %}
+{% block body %}
+
+<html>
+
+{% for rating in user_ratings %}
+<h3> <small>User ID {{ rating.user_id }} gave Movie ID {{ rating.movie_id }} a rating of {{rating.rating}} </small> </h3>
+{% endfor %}
+
+</html>
+
+{% endblock %}
+
+
+<!-- Add hyperlinks to all ratings for a movie -->
+<!-- {% for rating in user_ratings %}
+<h3> <small><a href="{{ url_for('user_ratings', user_id=user.id) }}">User ID {{ rating.user_id }} gave Movie ID {{ rating.movie_id }} a rating of {{rating.rating}} </a></small> </h3>
+{% endfor %}
+ -->
