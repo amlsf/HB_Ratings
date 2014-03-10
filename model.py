@@ -38,7 +38,8 @@ class Ratingsdata(Base):
 
 # Note: Many to one - the backref now creates a user (child) attribute referencing the ratings table (parent)
     # r = session.query(Rating).get(1) (get 1st rating object)
-    # u = r.user (get user object associdated with rating) --> u.age, etc, 
+    # u = r.user (get user object associdated with rating) --> u.age, etc,
+    # like r.movie.title or r.user.email 
         # then can "back reference" to ratings in ratings table associated with user object like u.ratings[0].movie_id
         # convenient shortcut to put all in one parent class if it changes
     user = relationship("User", backref=backref("ratings", order_by=id))

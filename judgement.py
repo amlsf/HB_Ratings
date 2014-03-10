@@ -1,5 +1,5 @@
-# TODO(optional) use Javascript and AJAX????
-#TODO(optional) add bunch of links to navigate better
+#TODO use Javascript and AJAX????
+#TODO(optional) add bunch of links to navigate better, like logout
 
 from flask import Flask, render_template, redirect, request, session, url_for, flash
 import model
@@ -125,12 +125,41 @@ def view_movies():
 def movie_ratings(movie_id):
     if session.get('user_id'):
         movie_ratings = model.session.query(model.Ratingsdata).filter_by(movie_id=movie_id).all()
-        return render_template("movie_ratings.html", movie_ratings=movie_ratings)
+        movie = model.session.query(model.Movie).filter_by(movie_id=movie_id).one()
+        movie_title = movie.title
+        return render_template("movie_ratings.html", movie_ratings=movie_ratings, movie_title = movie_title)
     else:
         flash("Please login")
         return redirect(url_for("index"))
 
 
+@app.route("/movies/<movie_id>", methods=["POST"])
+def rate_movie(movie_id):
+    user_id = session.get('user_id')
+    rating = request.form.get("rating")
+    existing = model.session.query(model.Ratingsdata).filter_by(user_id = user_id, movie_id = movie_id).all()
+
+# TODO: validation get integer check not to crap out & check range not working
+# TODO (optional) try using JS to have 5 boxes to select from
+
+    if not rating.isdigit():
+        flash("please input a valid numeric")
+        return redirect(url_for("movie_ratings", movie_id = movie_id))
+    if not int(rating) <= 5 or not int(rating) >= 1:
+        flash ("Please enter a valid number between 1-5")
+        return redirect(url_for("movie_ratings", movie_id = movie_id))
+    if existing != []:
+# TODO update review. How ask for user confirmation you want to change?  
+        flash("You have already left a review for this movie")
+        return redirect(url_for("movie_ratings", movie_id = movie_id))
+    else:
+        new_rating = model.Ratingsdata(movie_id = movie_id, 
+            user_id = user_id, 
+            rating = int(rating))
+        model.session.add(new_rating)
+        model.session.commit()
+        flash("You have successfully added a review for this movie")
+        return redirect(url_for("movie_ratings", movie_id = movie_id))
 
 if __name__ == "__main__":
     app.run(debug = True)

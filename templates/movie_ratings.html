@@ -3,10 +3,28 @@
 
 <html>
 
+    <h5> Movie Title: {{ movie_title}} </h5>
+
+       <ul>
+        {% for message in get_flashed_messages() %}
+            <li>{{ message }}</li>
+        {% endfor %}
+        </ul>
+
+{% if session.get("user_id") %}
+<form class = "leave_review" method = "POST"> 
+<input type="integer" class="form-control" placeholder="enter rating for this movie of 1-5" name="rating">
+<input type="submit" class="btn btn-lg btn-primary btn-block" value="Submit">
+</form>
+{% endif %}
+
+
 {% for rating in movie_ratings %}
-<h3> <small>User ID {{ rating.user_id }} gave Movie ID {{ rating.movie_id }} a rating of {{rating.rating}} </small> </h3>
+<h3> <small>Movie ID: {{ rating.movie_id }}, Movie Title: {{rating.movie.title}} received a rating of {{rating.rating}} from User ID {{ rating.user_id }}  </small> </h3>
 {% endfor %}
+
 
 </html>
 
 {% endblock %}
+
