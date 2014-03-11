@@ -44,7 +44,10 @@ class User(Base):
             return correlation.pearson(paired_ratings)
         else:
             return 0.0
-            
+
+
+# user1_ratings = session.query(Ratingsdata).filter_by(user_id = user1_id).all()
+# user2_ratings = session.query(Ratingsdata).filter_by (user_id = user2_id).all()
 
 class Ratingsdata(Base):
     __tablename__ = "ratings"
