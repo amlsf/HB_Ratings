@@ -5,6 +5,7 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 import datetime
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship, backref
+import correlation
 
 engine = create_engine("sqlite:///ratings.db", echo=False)
 session = scoped_session(sessionmaker(bind=engine,
@@ -27,6 +28,23 @@ class User(Base):
     password = Column(String(64), nullable=True)
 
     # data = relationship("Data", order_by = movies_id")
+
+    def similarity(user1, user2):
+        u_ratings = {}
+        paired_ratings = []
+        for r in user1.ratings:
+            u_ratings[r.movie_id] = r
+
+        for r in user2.ratings:
+            u_r = u_ratings.get(r.movie_id)
+            if u_r:
+                paired_ratings.append( (u_r.rating, r.rating) )
+
+        if paired_ratings:
+            return correlation.pearson(paired_ratings)
+        else:
+            return 0.0
+            
 
 class Ratingsdata(Base):
     __tablename__ = "ratings"

@@ -93,6 +93,7 @@ def create_account():
         flash("New user was created")            
         return redirect(url_for("index"))
 
+# TODO why is this so slow? But the view_movies is fine even though far more entries? (probably length)
 @app.route("/users")
 def view_users():
     if session.get('user_id'):
