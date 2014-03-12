@@ -11,6 +11,11 @@
         {% endfor %}
         </ul>
 
+    {% if prediction %}
+    <h3>We predict you will rate this movie {{prediction}}.</h3>
+    {% endif %}
+
+
 {% if session.get("user_id") %}
 <form class = "leave_review" method = "POST"> 
 <input type="integer" class="form-control" placeholder="enter rating for this movie of 1-5" name="rating">

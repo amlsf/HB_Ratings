@@ -122,17 +122,84 @@ def view_movies():
         flash("Please login")
         return redirect(url_for("index"))
 
-@app.route("/movies/<movie_id>")
-def movie_ratings(movie_id):
-    if session.get('user_id'):
-        movie_ratings = model.session.query(model.Ratingsdata).filter_by(movie_id=movie_id).all()
-        movie = model.session.query(model.Movie).filter_by(movie_id=movie_id).one()
-        movie_title = movie.title
-        return render_template("movie_ratings.html", movie_ratings=movie_ratings, movie_title = movie_title)
-    else:
-        flash("Please login")
-        return redirect(url_for("index"))
 
+
+@app.route("/movie/<movie_id>", methods=["GET"])
+def view_movie(movie_id):
+# My code to view all the ratings for a particular movie
+    movie_ratings = model.session.query(model.Ratingsdata).filter_by(movie_id=movie_id).all()
+    movie = model.session.query(model.Movie).filter_by(movie_id=movie_id).one()
+    movie_title = movie.title
+
+# Extra part from Christian for predictions
+# TODO - must insert a bunch of ratings for the "Eye"
+# When a user views a movie they haven't rated, 
+    #the Eye predicts how that user will rate that movie.
+# Once a user has either rated the movie or received a prediction, 
+    #the Eye will find its own rating for that movie, predicting the number if it has to.
+# The Eye will take the difference of the two ratings, 
+    # and criticize the user for their tastes.
+    movie = session.query(model.Movie).get(movie_id)
+    ratings = movie.ratings
+    rating_nums = []
+    user_rating = None
+    for r in ratings:
+        if r.user_id == session['user_id']:
+            user_rating = r
+        rating_nums.append(r.rating)
+# TODO why are we creating a list to calculate average rating here? Just to display? 
+    avg_rating = float(sum(rating_nums))/len(rating_nums)
+
+    # Prediction code: only predict if the user hasn't rated it.
+    user = session.query(model.User).get(session['user_id'])
+    prediction = None
+    if not user_rating:
+        prediction = user.predict_rating(movie)
+        effective_rating = prediction
+    else:
+        effective_rating = user_rating.rating        
+    # End prediction
+
+    the_eye = session.query(model.User).filter_by(email="theeye@ofjudgement.com").one()
+    eye_rating = session.query(model.Ratingsdata).filter_by(user_id=the_eye.id, movie_id=movie.id).first()
+
+    if not eye_rating:
+        eye_rating = the_eye.predict_rating(movie)
+    else:
+        eye_rating = eye_rating.rating
+
+    difference = abs(eye_rating - effective_rating)
+
+
+#Fix the messages syntax for error
+#TODO - pass message and Jinja key-value pairs to html template 
+#TODO See if you can figure out how to make the eye choose from a wider selection of messages 
+    #(hint, multiply the difference by something). Then, make your eye more evil.
+    messages = [ "I suppose you don't have such bad taste after all.",
+             "I regret every decision that I've ever made that has brought me to listen to your opinion.",
+             "Words fail me, as your taste in movies has clearly failed you.",
+             "That movie is great. For a clown to watch. Idiot.",
+             beratement = messages[int(difference)]
+
+    return render_template("movie_ratings.html",
+            movie_ratings=movie_ratings, 
+            movie_title = movie_title, 
+            movie=movie, 
+            average=avg_rating, 
+            user_rating=user_rating,
+            prediction=prediction)
+
+# My original stuff
+# @app.route("/movies/<movie_id>")
+# def movie_ratings(movie_id):
+#     if session.get('user_id'):
+#         movie_ratings = model.session.query(model.Ratingsdata).filter_by(movie_id=movie_id).all()
+#         movie = model.session.query(model.Movie).filter_by(movie_id=movie_id).one()
+#         movie_title = movie.title
+#         return render_template("movie_ratings.html", movie_ratings=movie_ratings, movie_title = movie_title)
+#     else:
+#         flash("Please login")
+#         return redirect(url_for("index"))
 
 @app.route("/movies/<movie_id>", methods=["POST"])
 def rate_movie(movie_id):
